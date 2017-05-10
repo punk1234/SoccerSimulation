@@ -1,0 +1,77 @@
+[
+  {
+    "date": "13-08-2016",
+    "result": [
+      {
+        "home team": "hull city",
+        "away team": "leicester city",
+        "home score": 2,
+        "away score": 1
+      },
+      {
+        "home team": "burnley",
+        "away team": "swansea city",
+        "home score": 0,
+        "away score": 1
+      },
+      {
+        "home team": "crystal palace",
+        "away team": "west bromwich albion",
+        "home score": 0,
+        "away score": 1
+      },
+      {
+        "home team": "everton",
+        "away team": "tottenham hotspur",
+        "home score": 1,
+        "away score": 1
+      },
+      {
+        "home team": "middlesbrough",
+        "away team": "stoke city",
+        "home score": 1,
+        "away score": 1
+      },
+      {
+        "home team": "southampton",
+        "away team": "watford",
+        "home score": 1,
+        "away score": 1
+      },
+      {
+        "home team": "manchester city",
+        "away team": "sunderland",
+        "home score": 2,
+        "away score": 1
+      }
+    ]
+  },
+  {
+    "date": "14-08-2016",
+    "result": [
+      {
+        "home team": "afc bournemouth",
+        "away team": "manchester united",
+        "home score": 1,
+        "away score": 3
+      },
+      {
+        "home team": "arsenal",
+        "away team": "liverpool",
+        "home score": 3,
+        "away score": 4
+      }
+    ]
+  },
+  {
+    "date": "15-08-2016",
+    "result": [
+      {
+        "home team": "chelsea",
+        "away team": "west ham united",
+        "home score": 2,
+        "away score": 1
+      }
+    ]
+  }
+]
