@@ -7,21 +7,35 @@ import java.util.*;
  */
 public class PerceptronUnit {
 
-    private Map<PerceptronUnit,Double> mappings;
+    private double activationValue;
+
+    private double errorValue;
 
     public PerceptronUnit(){
 
     }
 
-    public void addMapping(PerceptronUnit key, Double weight){
+    public void setActivationValue(double activationValue){
 
-
+        this.activationValue = activationValue;
 
     }
 
-    public Map<PerceptronUnit,Double> getMappings(){
+    public double getActivationValue(){
 
-        return mappings;
+        return activationValue;
+
+    }
+
+    public void setErrorValue(double errorValue){
+
+        this.errorValue = errorValue;
+
+    }
+
+    public double getErrorValue(){
+
+        return errorValue;
 
     }
 

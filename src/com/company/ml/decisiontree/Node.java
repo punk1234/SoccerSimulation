@@ -1,5 +1,6 @@
 package com.company.ml.decisiontree;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,6 +13,9 @@ public class Node {
     private Map<Double,Double> outcomeMappings;
 
     public Node(){
+
+        nodeMappings = new HashMap<>();
+        outcomeMappings = new HashMap<>();
 
     }
 

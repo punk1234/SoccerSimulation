@@ -33,6 +33,15 @@ public class Polynomial {
 
     }
 
+    public PUnit getUnit(int index){
+
+        if(index < pUnits.size()){
+            return pUnits.get(index);
+        }
+        throw new IndexOutOfBoundsException();
+
+    }
+
     public double getConstant(){
         return constant;
     }
@@ -45,11 +54,17 @@ public class Polynomial {
 
         double sum = 0;
         for(PUnit punit:pUnits){
+            if(!values.containsKey(punit.getVariableName())){
+                int b = 5;
+                b = b + 2;
+                System.out.println(b);
+            }
             double variableValue = values.get(punit.getVariableName());
             double variablePower = punit.getPower();
             double unitValue = punit.getCoefficient() * Math.pow(variableValue,variablePower);
             sum = sum + unitValue;
         }
+        sum = sum + constant;
         return sum;
 
     }
@@ -76,7 +91,7 @@ public class Polynomial {
 
     public int size(){
 
-        return pUnits.size();
+        return pUnits.size() + 1;
 
     }
 

@@ -1,5 +1,7 @@
 package com.company.ml.decisiontree;
 
+import com.company.ml.model.TrainingSet;
+
 import java.util.*;
 
 /**
@@ -8,9 +10,10 @@ import java.util.*;
 public class DecisionTreeBuilder {
 
     // the last column of the training examples contains the outcome or result
-    public static DecisionTree build(Double[][] trainingSet){
+    public static DecisionTree build(TrainingSet trainingSet){
 
-        List<Double> outcomes = getOutcomes(trainingSet);
+        int outcomeColumnIndex = trainingSet.getNumberOfColumns() - 1;
+        List<Double> outcomes = trainingSet.getDistinctColumnValues(outcomeColumnIndex); // getOutcomes(trainingSet);
         Node node = new Node();
         Map<Integer,Double> featureMappings = new HashMap<>();
         build(trainingSet,featureMappings,node,outcomes);
@@ -22,51 +25,89 @@ public class DecisionTreeBuilder {
 
     }
 
-    private static void build(Double[][] trainingSet, Map<Integer,Double> featureMappings, Node node, List<Double> outcomes){
+    private static void build(TrainingSet trainingSet, Map<Integer,Double> featureMappings, Node node, List<Double> outcomes){
 
         Integer feature = getFeatureToSplitOn(trainingSet,featureMappings,outcomes);
+
         node.setFeature(feature);
-        List<Double> categories = getCategories(trainingSet,feature);
+        // List<Double> categories = getCategories(trainingSet,feature);
+        List<Double> categories = getCategories(trainingSet,feature,featureMappings);
         for(Double category : categories){
             featureMappings.put(feature,category);
             if(isPure(trainingSet,featureMappings)){
                 node.getOutcomeMappings().put(category,getOutcome(trainingSet,featureMappings));
             }
             else{
-                Node childNode = new Node();
-                node.getNodeMappings().put(category,childNode);
-                build(trainingSet,featureMappings,childNode,outcomes);
+                int featureSize = trainingSet.getNumberOfColumns() - 1;
+                if(featureMappings.size() == featureSize){
+                    // all features have been exhausted or reached, and still no purity condition satisfied
+                    Double outcome = getOutcomeAfterAllFeaturesExhausted(trainingSet,featureMappings);
+                    node.getOutcomeMappings().put(category,outcome);
+                }
+                else{
+                    Node childNode = new Node();
+                    node.getNodeMappings().put(category,childNode);
+                    build(trainingSet,featureMappings,childNode,outcomes);
+                }
             }
             featureMappings.remove(feature);
         }
 
     }
 
-    private static double getOutcome(Double[][] trainingSet, Map<Integer,Double> featureMappings){
+    private static Double getOutcomeAfterAllFeaturesExhausted(TrainingSet trainingSet, Map<Integer,Double> featureMappings){
 
-        int numberOfColumns = trainingSet[0].length;
+        List<Double> outcomes = new ArrayList<>();
         Set<Integer> keys = featureMappings.keySet();
-        for(Double[] trainingRow : trainingSet){
+        int outcomeIndex = trainingSet.getNumberOfColumns() - 1;
+        for(int rowIndex = 0; rowIndex < trainingSet.getNumberOfRows(); rowIndex++){
+            Double value = trainingSet.get(rowIndex,outcomeIndex);
+            boolean status = true;
+            for(Integer key : keys){
+                if(!trainingSet.get(rowIndex,key).equals(featureMappings.get(key))){
+                    status = false;
+                    break;
+                }
+            }
+
+            if(status){
+                if(!outcomes.contains(value)){
+                    outcomes.add(value);
+                }
+            }
+        }
+
+        return outcomes.get(0);
+
+    }
+
+    private static double getOutcome(TrainingSet trainingSet, Map<Integer,Double> featureMappings){
+
+        int numberOfColumns = trainingSet.getNumberOfColumns();
+        Set<Integer> keys = featureMappings.keySet();
+        for(int rowIndex = 0; rowIndex < trainingSet.getNumberOfRows(); rowIndex++){
             boolean status = true;
             for(Integer keyItem : keys){
-                if(trainingRow[keyItem] != featureMappings.get(keyItem)){
+                //if(trainingRow[keyItem] != featureMappings.get(keyItem)){
+                if(!trainingSet.get(rowIndex,keyItem).equals(featureMappings.get(keyItem))){
                     status = false;
                     break;
                 }
             }
             if(status){
-                return trainingRow[numberOfColumns-1];
+                return trainingSet.get(rowIndex,numberOfColumns-1);
             }
         }
 
         throw new IllegalArgumentException();
     }
 
-    private static List<Double> getCategories(Double[][] trainingSet, int feature){
+    private static List<Double> getCategories(TrainingSet trainingSet, int feature){
 
         List<Double> categories = new ArrayList<>();
-        for(Double[] trainingRow : trainingSet){
-            Double value = trainingRow[feature];
+        for(int rowIndex = 0; rowIndex < trainingSet.getNumberOfRows(); rowIndex++){
+        //for(Double[] trainingRow : trainingSet){
+            Double value = trainingSet.get(rowIndex,feature);
             if(!categories.contains(value)){
                 categories.add(value);
             }
@@ -76,9 +117,38 @@ public class DecisionTreeBuilder {
 
     }
 
-    private static int getFeatureToSplitOn(Double[][] trainingSet, Map<Integer,Double> previousMappings, List<Double> outcomes){
+    private static List<Double> getCategories(TrainingSet trainingSet, int feature, Map<Integer,Double> featureMappings){
 
-        int lastFeatureColumnIndex = trainingSet[0].length - 1;
+        List<Double> categories = new ArrayList<>();
+        Set<Integer> keys = featureMappings.keySet();
+        if(feature < 0){
+            System.out.println("feature index < 0");
+        }
+        for(int rowIndex = 0; rowIndex < trainingSet.getNumberOfRows(); rowIndex++){
+            Double value = trainingSet.get(rowIndex,feature);
+
+            boolean status = true;
+            for(Integer key : keys){
+                if(!trainingSet.get(rowIndex,key).equals(featureMappings.get(key))){
+                    status = false;
+                    break;
+                }
+            }
+
+            if(status){
+                if(!categories.contains(value)){
+                    categories.add(value);
+                }
+            }
+        }
+
+        return categories;
+
+    }
+
+    private static int getFeatureToSplitOn(TrainingSet trainingSet, Map<Integer,Double> previousMappings, List<Double> outcomes){
+
+        int lastFeatureColumnIndex = trainingSet.getNumberOfColumns() - 1;
         Set<Integer> keys = previousMappings.keySet();
         Map<Integer,Double> featureInformationGainMappings = new HashMap<>();
         for(int feature = 0; feature < lastFeatureColumnIndex; feature++){
@@ -115,7 +185,7 @@ public class DecisionTreeBuilder {
 
     }
 
-    private static double getInformationGain(Double[][] trainingSet, Map<Integer,Double> previousMappings, int feature, List<Double> outcomes){
+    private static double getInformationGain(TrainingSet trainingSet, Map<Integer,Double> previousMappings, int feature, List<Double> outcomes){
 
         double currentEntropy = getEntropy(trainingSet,previousMappings,outcomes);
         double childrenEntropy = 0;
@@ -132,24 +202,24 @@ public class DecisionTreeBuilder {
 
     }
 
-    private static double getEntropy(Double[][] trainingSet, Map<Integer,Double> previousMappings, List<Double> outcomes){
+    private static double getEntropy(TrainingSet trainingSet, Map<Integer,Double> previousMappings, List<Double> outcomes){
 
-        int lastColumnIndex = trainingSet[0].length - 1;
+        int lastColumnIndex = trainingSet.getNumberOfColumns() - 1;
         int mainTrainingSetCount = 0;
         Map<Double,Integer> outcomesWithCount = new HashMap<>();
         Set<Integer> keys = previousMappings.keySet();
 
-        for(Double[] trainingRow:trainingSet){
+        for(int rowIndex = 0; rowIndex < trainingSet.getNumberOfRows(); rowIndex++){
             boolean status = true;
             for(Integer keyItem : keys){
-                if(trainingRow[keyItem] != previousMappings.get(keyItem)){
+                if(trainingSet.get(rowIndex,keyItem) != previousMappings.get(keyItem)){
                     status = false;
                     break;
                 }
             }
             if(status){
                 mainTrainingSetCount = mainTrainingSetCount + 1;
-                double trainingRowOutcome = trainingRow[lastColumnIndex];
+                double trainingRowOutcome = trainingSet.get(rowIndex,lastColumnIndex);
                 if(outcomesWithCount.containsKey(trainingRowOutcome)){
                     int outcomeFrequency = outcomesWithCount.get(trainingRowOutcome);
                     outcomeFrequency++;
@@ -181,40 +251,43 @@ public class DecisionTreeBuilder {
 
     }
 
-    private static List<Double> getOutcomes(Double[][] trainingSet){
-
-        List<Double> outcomes = new ArrayList<>();
-        int lastColumnIndex = trainingSet[0].length - 1;
-        for(int i = 0; i < trainingSet.length; i++){
-            Double outcome = trainingSet[i][lastColumnIndex];
-            if(!outcomes.contains(outcome)){
-                outcomes.add(outcome);
-            }
-        }
-        return outcomes;
-
-    }
+//    private static List<Double> getOutcomes(Double[][] trainingSet){
+//
+//        List<Double> outcomes = new ArrayList<>();
+//        int lastColumnIndex = trainingSet[0].length - 1;
+//        for(int i = 0; i < trainingSet.length; i++){
+//            Double outcome = trainingSet[i][lastColumnIndex];
+//            if(!outcomes.contains(outcome)){
+//                outcomes.add(outcome);
+//            }
+//        }
+//        return outcomes;
+//
+//    }
 
     // update this method
-    private static boolean isPure(Double[][] trainingSet, Map<Integer,Double> mappings){
+    private static boolean isPure(TrainingSet trainingSet, Map<Integer,Double> mappings){
 
-        if(trainingSet.length > 0){
+        if(trainingSet.getNumberOfRows() > 0){
             List<Double> outcomes = new ArrayList<>();
-            int outcomeColumnIndex = trainingSet[0].length - 1;
+            int outcomeColumnIndex = trainingSet.getNumberOfColumns() - 1;
             Set<Integer> keys = mappings.keySet();
-            for(Double[] trainingRow : trainingSet){
+            for(int rowIndex = 0; rowIndex < trainingSet.getNumberOfRows(); rowIndex++){
+            //for(Double[] trainingRow : trainingSet){
                 boolean status = true;
                 for(Integer key : keys){
-                    if(trainingRow[key] != mappings.get(key)){
+                    //if(trainingRow[key] != mappings.get(key)){
+                    if(!trainingSet.get(rowIndex,key).equals(mappings.get(key))){
                         status = false;
                         break;
                     }
                 }
                 if(status){
-                    outcomes.add(trainingRow[outcomeColumnIndex]);
+                    outcomes.add(trainingSet.get(rowIndex,outcomeColumnIndex));
                 }
 
             }
+
 
             if(hasSameValues(outcomes)){
                 return true;

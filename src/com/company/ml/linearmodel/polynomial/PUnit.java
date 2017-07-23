@@ -43,6 +43,12 @@ public class PUnit {
 
     public double getValue(double variableValue){
 
+        return getValue(coefficient,variableValue);
+
+    }
+
+    public double getValue(double coefficient, double variableValue){
+
         double result = coefficient * Math.pow(variableValue,power);
         return result;
 

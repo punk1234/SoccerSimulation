@@ -1,26 +1,48 @@
 package com.company.ml.naivebayes;
 
+import com.company.ml.MachineLearningTechnique;
+import com.company.ml.model.TrainingRow;
+import com.company.ml.model.TrainingSet;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by AKEJU  FATAI on 2017-04-15.
  */
-public class NaiveBayes {
+public class NaiveBayes implements MachineLearningTechnique {
 
+    private TrainingSet trainingSet;
 
-    public static Double predict(Double[][] trainingSet, Double[] predictionSet) throws Exception {
+    public NaiveBayes(){
 
-        List<Double> outcomes = getOutcomes(trainingSet);
+    }
+
+    @Override
+    public void learn(TrainingSet trainingSet){
+
+        this.trainingSet = trainingSet;
+
+    }
+
+    @Override
+    public Double predict(TrainingRow predictionSet) {
+
+        int outcomeColumnIndex = trainingSet.getNumberOfColumns() - 1;
+        List<Double> outcomes = trainingSet.getDistinctColumnValues(outcomeColumnIndex); // getOutcomes(trainingSet);
         OutcomeProbabilitySet outcomeProbabilitySet = new OutcomeProbabilitySet(outcomes.size());
         for(Double outcome : outcomes){
             double probability = getOutcomeProbability(trainingSet,outcome);
             System.out.println("probability " + probability);
-            for(int featureIndex = 0;featureIndex < predictionSet.length;featureIndex++){
-                probability = probability * getProbabilityWithOutcomeAndFeature(trainingSet,outcome,featureIndex,predictionSet[featureIndex]);
+            for(int featureIndex = 0;featureIndex < predictionSet.getSize();featureIndex++){
+                probability = probability * getProbabilityWithOutcomeAndFeature(trainingSet,outcome,featureIndex,predictionSet.get(featureIndex));
             }
             OutcomeProbability outcomeProbability = new OutcomeProbability(outcome,probability);
-            outcomeProbabilitySet.add(outcomeProbability);
+            try {
+                outcomeProbabilitySet.add(outcomeProbability);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             System.out.println("OUTCOME " + outcomeProbability.getOutcome());
             System.out.println("PROBABILITY " + outcomeProbability.getProbability());
         }
@@ -29,46 +51,37 @@ public class NaiveBayes {
 
     }
 
-    private static List<Double> getOutcomes(Double[][] trainingSet){
-
-        List<Double> outcomes = new ArrayList<>();
-        int lastColumnIndex = trainingSet[0].length - 1;
-        for(int i = 0; i < trainingSet.length; i++){
-            Double outcome = trainingSet[i][lastColumnIndex];
-            if(!outcomes.contains(outcome)){
-                outcomes.add(outcome);
-            }
-        }
-        return outcomes;
-
+    @Override
+    public String getName() {
+        return "naive_bayes";
     }
 
-    private static double getOutcomeProbability(Double[][] trainingSet, Double outcome){
+    private static double getOutcomeProbability(TrainingSet trainingSet, Double outcome){
 
-        int lastColumnIndex = trainingSet[0].length - 1;
+        int lastColumnIndex = trainingSet.getNumberOfColumns() - 1;
         int trainingSetWithOutcomeCount = 0;
-        for(int i = 0; i < trainingSet.length; i++){
-            double outcomeValue = trainingSet[i][lastColumnIndex];
+        for(int i = 0; i < trainingSet.getNumberOfRows(); i++){
+            double outcomeValue = trainingSet.get(i,lastColumnIndex); // trainingSet[i][lastColumnIndex];
             if(outcome == outcomeValue){
                 trainingSetWithOutcomeCount = trainingSetWithOutcomeCount + 1;
             }
         }
 
-        double probability = (double)(trainingSetWithOutcomeCount) / (double)(trainingSet.length);
+        double probability = (double)(trainingSetWithOutcomeCount) / (double)(trainingSet.getNumberOfRows());
         return probability;
 
     }
 
-    private static double getProbabilityWithOutcomeAndFeature(Double[][] trainingSet, Double outcome, int featureColumnIndex, Double featureColumnValue){
+    private static double getProbabilityWithOutcomeAndFeature(TrainingSet trainingSet, Double outcome, int featureColumnIndex, Double featureColumnValue){
 
-        int lastColumnIndex = trainingSet[0].length - 1;
+        int lastColumnIndex = trainingSet.getNumberOfColumns() - 1;
         int trainingSetWithOutcomeCount = 0;
         int trainingSetWithOutcomeAndFeatureCount = 0;
-        for(int i = 0; i < trainingSet.length; i++){
-            double outcomeValue = trainingSet[i][lastColumnIndex];
+        for(int i = 0; i < trainingSet.getNumberOfRows(); i++){
+            double outcomeValue = trainingSet.get(i,lastColumnIndex); // trainingSet[i][lastColumnIndex];
             if(outcome == outcomeValue){
                 trainingSetWithOutcomeCount = trainingSetWithOutcomeCount + 1;
-                double trainingSetItem = trainingSet[i][featureColumnIndex];
+                double trainingSetItem = trainingSet.get(i,featureColumnIndex); // trainingSet[i][featureColumnIndex];
                 if(trainingSetItem == featureColumnValue){
                     trainingSetWithOutcomeAndFeatureCount = trainingSetWithOutcomeAndFeatureCount + 1;
                 }

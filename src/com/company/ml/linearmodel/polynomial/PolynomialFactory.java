@@ -7,10 +7,10 @@ public class PolynomialFactory {
 
     // for univariate, variateValue = 1
     // for multivariate, variateValue > 1, that is, 2,3,4,5,...
-    public static Polynomial create(int variateValue, int maximumDegree){
+    public static Polynomial create(int variateValue, int maximumDegree, String variablePrefix){
 
-        String prefix = "x";
-        String[] variableNames = createVariableNames(prefix,variateValue);
+        //String prefix = "x";
+        String[] variableNames = createVariableNames(variablePrefix,variateValue);
 
         Polynomial polynomial = createPolynomial(variableNames,maximumDegree);
 
